@@ -17,7 +17,9 @@ class SegmentedTabControl extends StatelessWidget {
     this.controller,
     this.tabTextColor,
     this.textStyle,
+    this.subLabelTextStyle,
     this.selectedTextStyle,
+    this.selectedSubLabelTextStyle,
     this.selectedTabTextColor,
     this.squeezeIntensity = 1,
     this.squeezeDuration = const Duration(milliseconds: 500),
@@ -49,8 +51,14 @@ class SegmentedTabControl extends StatelessWidget {
   /// Style of all labels. Color will not be applied.
   final TextStyle? textStyle;
 
+  /// Style of sub labels. Color will not be applied.
+  final TextStyle? subLabelTextStyle;
+
   /// Style of selected tab label. Color will not be applied.
   final TextStyle? selectedTextStyle;
+
+  /// Style of selected tab sub label. Color will not be applied
+  final TextStyle? selectedSubLabelTextStyle;
 
   /// The color of the text beyond the indicator.
   final Color? tabTextColor;
@@ -99,7 +107,9 @@ class SegmentedTabControl extends StatelessWidget {
           controller: controller,
           tabTextColor: tabTextColor,
           textStyle: textStyle,
+          subLabelTextStyle: subLabelTextStyle,
           selectedTextStyle: selectedTextStyle,
+          selectedSubLabelTextStyle: selectedSubLabelTextStyle,
           selectedTabTextColor: selectedTabTextColor,
           squeezeIntensity: squeezeIntensity,
           squeezeDuration: squeezeDuration,
@@ -118,15 +128,16 @@ class SegmentedTabControl extends StatelessWidget {
 class _SegmentedTabControl extends StatefulWidget
     implements PreferredSizeWidget {
   const _SegmentedTabControl({
-    super.key,
     required this.height,
     required this.tabs,
     required this.maxWidth,
     this.controller,
     this.tabTextColor,
     this.textStyle,
+    this.subLabelTextStyle,
     this.selectedTextStyle,
     this.selectedTabTextColor,
+    this.selectedSubLabelTextStyle,
     this.squeezeIntensity = 1,
     this.squeezeDuration = const Duration(milliseconds: 500),
     this.indicatorPadding = EdgeInsets.zero,
@@ -142,7 +153,9 @@ class _SegmentedTabControl extends StatefulWidget
   final double maxWidth;
   final TabController? controller;
   final TextStyle? textStyle;
+  final TextStyle? subLabelTextStyle;
   final TextStyle? selectedTextStyle;
+  final TextStyle? selectedSubLabelTextStyle;
   final Color? tabTextColor;
   final Color? selectedTabTextColor;
   final double squeezeIntensity;
@@ -352,7 +365,13 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
     final textStyle =
         widget.textStyle ?? Theme.of(context).textTheme.bodyMedium!;
 
+    final subLabelTextStyle =
+        widget.subLabelTextStyle ?? Theme.of(context).textTheme.bodySmall!;
+
     final selectedTextStyle = widget.selectedTextStyle ?? textStyle;
+
+    final selectedSubLabelTextStyle =
+        widget.selectedSubLabelTextStyle ?? subLabelTextStyle;
 
     final selectedTabTextColor = currentTab.selectedTextColor ??
         widget.selectedTabTextColor ??
@@ -396,7 +415,14 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
                         textStyle: textStyle.copyWith(
                           color: tabTextColor,
                         ),
+                        subLabelTextStyle: subLabelTextStyle.copyWith(
+                          color: tabTextColor,
+                        ),
                         selectedTextStyle: selectedTextStyle.copyWith(
+                          color: tabTextColor,
+                        ),
+                        selectedSubLabelTextStyle:
+                            selectedSubLabelTextStyle.copyWith(
                           color: tabTextColor,
                         ),
                         tabPadding: widget.tabPadding,
@@ -456,8 +482,15 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
                           textStyle: textStyle.copyWith(
                             color: selectedTabTextColor,
                           ),
+                          subLabelTextStyle: subLabelTextStyle.copyWith(
+                            color: selectedTabTextColor,
+                          ),
                           selectedTextStyle: selectedTextStyle.copyWith(
                             color: selectedTabTextColor,
+                          ),
+                          selectedSubLabelTextStyle:
+                              selectedSubLabelTextStyle.copyWith(
+                            color: tabTextColor,
                           ),
                           tabPadding: widget.tabPadding,
                         ),
@@ -575,7 +608,9 @@ class _Labels extends StatelessWidget {
     required this.tabs,
     required this.currentIndex,
     required this.textStyle,
+    required this.subLabelTextStyle,
     required this.selectedTextStyle,
+    required this.selectedSubLabelTextStyle,
     this.radius,
     this.splashColor,
     this.splashHighlightColor,
@@ -586,7 +621,9 @@ class _Labels extends StatelessWidget {
   final List<SegmentTab> tabs;
   final int currentIndex;
   final TextStyle textStyle;
+  final TextStyle subLabelTextStyle;
   final TextStyle selectedTextStyle;
+  final TextStyle selectedSubLabelTextStyle;
   final EdgeInsets tabPadding;
   final BorderRadiusGeometry? radius;
   final Color? splashColor;
@@ -612,30 +649,37 @@ class _Labels extends StatelessWidget {
                 child: Padding(
                   padding: tabPadding,
                   child: Center(
-                    child: AnimatedDefaultTextStyle(
-                      duration: kTabScrollDuration,
-                      curve: Curves.ease,
-                      style: (index == currentIndex)
-                          ? selectedTextStyle
-                          : textStyle,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedDefaultTextStyle(
+                          duration: kTabScrollDuration,
+                          curve: Curves.ease,
+                          style: (index == currentIndex)
+                              ? selectedTextStyle
+                              : textStyle,
+                          child: Text(
                             tab.label,
                             overflow: TextOverflow.clip,
                             maxLines: 1,
                             textAlign: TextAlign.center,
                           ),
-                          if (tab.subLabel != null)
-                            Text(
+                        ),
+                        if (tab.subLabel != null)
+                          AnimatedDefaultTextStyle(
+                            duration: kTabScrollDuration,
+                            curve: Curves.ease,
+                            style: (index == currentIndex)
+                                ? selectedSubLabelTextStyle
+                                : subLabelTextStyle,
+                            child: Text(
                               tab.subLabel!,
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               textAlign: TextAlign.center,
                             ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
