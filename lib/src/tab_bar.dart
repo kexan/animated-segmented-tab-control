@@ -42,8 +42,8 @@ class SegmentedTabControl extends StatelessWidget {
   /// [preferredSize] returns this value.
   final double height;
 
-  /// Selection options.
-  final List<SegmentTab> tabs;
+  /// Selection options. Can be either a list of [SegmentTab] or a list of [Widget].
+  final List<dynamic> tabs;
 
   /// Can be provided by [DefaultTabController].
   final TabController? controller;
@@ -148,7 +148,7 @@ class _SegmentedTabControl extends StatefulWidget
     this.indicatorDecoration,
   });
 
-  final List<SegmentTab> tabs;
+  final List<dynamic> tabs;
   final double height;
   final double maxWidth;
   final TabController? controller;
@@ -224,14 +224,24 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
   }
 
   void _calculateTotalFlex() {
-    _totalFlex =
-        widget.tabs.fold(0, (previousValue, tab) => previousValue + tab.flex);
+    _totalFlex = widget.tabs.fold(0, (previousValue, tab) {
+      if (tab is SegmentTab) {
+        return previousValue + tab.flex;
+      } else {
+        return previousValue + 1;
+      }
+    });
   }
 
   void _calculateFlexFactors() {
     int collectedFlex = 0;
     for (int i = 0; i < widget.tabs.length; i++) {
-      collectedFlex += widget.tabs[i].flex;
+      final tab = widget.tabs[i];
+      if (tab is SegmentTab) {
+        collectedFlex += tab.flex;
+      } else {
+        collectedFlex += 1;
+      }
       flexFactors.add(collectedFlex / _totalFlex);
     }
   }
@@ -293,8 +303,10 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
       final tab = widget.tabs[index];
       final nextTab = widget.tabs[index + 1];
 
-      final tabWidth = (tab.flex / _totalFlex) * _maxWidth;
-      final nextTabWidth = (nextTab.flex / _totalFlex) * _maxWidth;
+      final tabWidth =
+          (tab is SegmentTab ? tab.flex : 1) / _totalFlex * _maxWidth;
+      final nextTabWidth =
+          (nextTab is SegmentTab ? nextTab.flex : 1) / _totalFlex * _maxWidth;
 
       if (nextTabWidth >= tabWidth) {
         final alignmentEndX = computedWidth + (tabWidth / 2);
@@ -339,7 +351,10 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
   }
 
   Alignment _calculateAlignmentFromTarget(double position, int index) {
-    final tabWidth = (widget.tabs[index].flex / _totalFlex) * _maxWidth;
+    final tabWidth =
+        (widget.tabs[index] is SegmentTab ? widget.tabs[index].flex : 1) /
+            _totalFlex *
+            _maxWidth;
     final currentTabHalfWidth = tabWidth / 2;
     final halfMaxWidth = _maxWidth / 2;
 
@@ -373,13 +388,13 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
     final selectedSubLabelTextStyle =
         widget.selectedSubLabelTextStyle ?? subLabelTextStyle;
 
-    final selectedTabTextColor = currentTab.selectedTextColor ??
-        widget.selectedTabTextColor ??
-        Colors.white;
+    final selectedTabTextColor = currentTab is SegmentTab
+        ? currentTab.selectedTextColor
+        : widget.selectedTabTextColor ?? Colors.white;
 
-    final tabTextColor = currentTab.textColor ??
-        widget.tabTextColor ??
-        Colors.white.withOpacity(0.7);
+    final tabTextColor = currentTab is SegmentTab
+        ? currentTab.textColor
+        : widget.tabTextColor ?? Colors.white.withOpacity(0.7);
 
     return DefaultTextStyle(
       style: widget.textStyle ?? DefaultTextStyle.of(context).style,
@@ -387,7 +402,7 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
         builder: (context, _) {
           final indicatorWidth =
               ((_maxWidth - widget.indicatorPadding.horizontal) / _totalFlex) *
-                  widget.tabs[_internalIndex].flex;
+                  (currentTab is SegmentTab ? currentTab.flex : 1);
 
           return ClipRRect(
             borderRadius:
@@ -400,8 +415,12 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
                     duration: kTabScrollDuration,
                     curve: Curves.ease,
                     decoration: widget.barDecoration?.copyWith(
-                      color: currentTab.backgroundColor,
-                      gradient: currentTab.backgroundGradient,
+                      color: currentTab is SegmentTab
+                          ? currentTab.backgroundColor
+                          : null,
+                      gradient: currentTab is SegmentTab
+                          ? currentTab.backgroundGradient
+                          : null,
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -447,8 +466,12 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
                             height: widget.height -
                                 widget.indicatorPadding.vertical,
                             decoration: widget.indicatorDecoration?.copyWith(
-                              color: currentTab.color,
-                              gradient: currentTab.gradient,
+                              color: currentTab is SegmentTab
+                                  ? currentTab.color
+                                  : null,
+                              gradient: currentTab is SegmentTab
+                                  ? currentTab.gradient
+                                  : null,
                             ),
                           ),
                         ),
@@ -618,7 +641,7 @@ class _Labels extends StatelessWidget {
   }) : super(key: key);
 
   final VoidCallback Function(int index)? callbackBuilder;
-  final List<SegmentTab> tabs;
+  final List<dynamic> tabs;
   final int currentIndex;
   final TextStyle textStyle;
   final TextStyle subLabelTextStyle;
@@ -638,53 +661,70 @@ class _Labels extends StatelessWidget {
           tabs.length,
           (index) {
             final tab = tabs[index];
-            return Flexible(
-              flex: tab.flex,
-              child: InkWell(
-                splashColor: tab.splashColor ?? splashColor,
-                highlightColor:
-                    tab.splashHighlightColor ?? splashHighlightColor,
-                borderRadius: radius as BorderRadius?,
-                onTap: callbackBuilder?.call(index),
-                child: Padding(
-                  padding: tabPadding,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedDefaultTextStyle(
-                          duration: kTabScrollDuration,
-                          curve: Curves.ease,
-                          style: (index == currentIndex)
-                              ? selectedTextStyle
-                              : textStyle,
-                          child: Text(
-                            tab.label,
-                            overflow: TextOverflow.clip,
-                            maxLines: 1,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        if (tab.subLabel != null)
+            if (tab is SegmentTab) {
+              return Flexible(
+                flex: tab.flex,
+                child: InkWell(
+                  splashColor: tab.splashColor ?? splashColor,
+                  highlightColor:
+                      tab.splashHighlightColor ?? splashHighlightColor,
+                  borderRadius: radius as BorderRadius?,
+                  onTap: callbackBuilder?.call(index),
+                  child: Padding(
+                    padding: tabPadding,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           AnimatedDefaultTextStyle(
                             duration: kTabScrollDuration,
                             curve: Curves.ease,
                             style: (index == currentIndex)
-                                ? selectedSubLabelTextStyle
-                                : subLabelTextStyle,
+                                ? selectedTextStyle
+                                : textStyle,
                             child: Text(
-                              tab.subLabel!,
+                              tab.label,
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               textAlign: TextAlign.center,
                             ),
                           ),
-                      ],
+                          if (tab.subLabel != null)
+                            AnimatedDefaultTextStyle(
+                              duration: kTabScrollDuration,
+                              curve: Curves.ease,
+                              style: (index == currentIndex)
+                                  ? selectedSubLabelTextStyle
+                                  : subLabelTextStyle,
+                              child: Text(
+                                tab.subLabel!,
+                                overflow: TextOverflow.clip,
+                                maxLines: 1,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
+              );
+            } else {
+              return Expanded(
+                child: InkWell(
+                  splashColor: splashColor,
+                  highlightColor: splashHighlightColor,
+                  borderRadius: radius as BorderRadius?,
+                  onTap: callbackBuilder?.call(index),
+                  child: Padding(
+                    padding: tabPadding,
+                    child: Center(
+                      child: tab,
+                    ),
+                  ),
+                ),
+              );
+            }
           },
         ),
       ),
