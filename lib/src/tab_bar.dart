@@ -389,12 +389,16 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
         widget.selectedSubLabelTextStyle ?? subLabelTextStyle;
 
     final selectedTabTextColor = currentTab is SegmentTab
-        ? currentTab.selectedTextColor
-        : widget.selectedTabTextColor ?? Colors.white;
+        ? currentTab.selectedTextColor ??
+            widget.selectedTabTextColor ??
+            Colors.white
+        : null;
 
     final tabTextColor = currentTab is SegmentTab
-        ? currentTab.textColor
-        : widget.tabTextColor ?? Colors.white.withOpacity(0.7);
+        ? currentTab.textColor ??
+            widget.tabTextColor ??
+            Colors.white.withOpacity(0.7)
+        : null;
 
     return DefaultTextStyle(
       style: widget.textStyle ?? DefaultTextStyle.of(context).style,
@@ -503,17 +507,17 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
                           tabs: widget.tabs,
                           currentIndex: _internalIndex,
                           textStyle: textStyle.copyWith(
-                            color: selectedTabTextColor,
+                            color: tabTextColor,
                           ),
                           subLabelTextStyle: subLabelTextStyle.copyWith(
-                            color: selectedTabTextColor,
+                            color: tabTextColor,
                           ),
                           selectedTextStyle: selectedTextStyle.copyWith(
                             color: selectedTabTextColor,
                           ),
                           selectedSubLabelTextStyle:
                               selectedSubLabelTextStyle.copyWith(
-                            color: tabTextColor,
+                            color: selectedTabTextColor,
                           ),
                           tabPadding: widget.tabPadding,
                         ),
