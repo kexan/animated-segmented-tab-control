@@ -1,6 +1,7 @@
 import 'package:animated_segmented_tab_control/src/utils/double_range.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 
 import 'tab.dart';
 import 'utils/custom_clippers.dart';
@@ -538,6 +539,7 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
       return null;
     }
     return (int index) => () {
+          HapticFeedback.lightImpact();
           _internalAnimationController.stop();
           _controller!.animateTo(index);
         };
