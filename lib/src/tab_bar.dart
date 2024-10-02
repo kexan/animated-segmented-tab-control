@@ -22,6 +22,7 @@ class SegmentedTabControl extends StatelessWidget {
     this.selectedTextStyle,
     this.selectedSubLabelTextStyle,
     this.selectedTabTextColor,
+    this.vibrateOnTap = false,
     this.squeezeIntensity = 1,
     this.squeezeDuration = const Duration(milliseconds: 500),
     this.indicatorPadding = EdgeInsets.zero,
@@ -67,6 +68,8 @@ class SegmentedTabControl extends StatelessWidget {
   /// The color of the text inside the indicator.
   final Color? selectedTabTextColor;
 
+  final bool vibrateOnTap;
+
   /// Intensity of squeeze animation.
   ///
   /// This animation starts when you click on the indicator and stops when you
@@ -111,6 +114,7 @@ class SegmentedTabControl extends StatelessWidget {
           subLabelTextStyle: subLabelTextStyle,
           selectedTextStyle: selectedTextStyle,
           selectedSubLabelTextStyle: selectedSubLabelTextStyle,
+          vibrateOnTap: vibrateOnTap,
           selectedTabTextColor: selectedTabTextColor,
           squeezeIntensity: squeezeIntensity,
           squeezeDuration: squeezeDuration,
@@ -139,6 +143,7 @@ class _SegmentedTabControl extends StatefulWidget
     this.selectedTextStyle,
     this.selectedTabTextColor,
     this.selectedSubLabelTextStyle,
+    this.vibrateOnTap = false,
     this.squeezeIntensity = 1,
     this.squeezeDuration = const Duration(milliseconds: 500),
     this.indicatorPadding = EdgeInsets.zero,
@@ -159,6 +164,7 @@ class _SegmentedTabControl extends StatefulWidget
   final TextStyle? selectedSubLabelTextStyle;
   final Color? tabTextColor;
   final Color? selectedTabTextColor;
+  final bool vibrateOnTap;
   final double squeezeIntensity;
   final Duration squeezeDuration;
   final EdgeInsets indicatorPadding;
@@ -539,7 +545,7 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
       return null;
     }
     return (int index) => () {
-          HapticFeedback.lightImpact();
+          if (widget.vibrateOnTap) HapticFeedback.lightImpact();
           _internalAnimationController.stop();
           _controller!.animateTo(index);
         };
