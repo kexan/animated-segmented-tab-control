@@ -545,7 +545,7 @@ class _SegmentedTabControlState extends State<_SegmentedTabControl>
       return null;
     }
     return (int index) => () {
-          if (widget.vibrateOnTap) HapticFeedback.lightImpact();
+          if (widget.vibrateOnTap) HapticFeedback.mediumImpact();
           _internalAnimationController.stop();
           _controller!.animateTo(index);
         };
